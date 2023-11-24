@@ -10,6 +10,8 @@
 #ifndef LOCOMOTIVEBEHAVIOR_H
 #define LOCOMOTIVEBEHAVIOR_H
 
+#include <utility>
+
 #include "locomotive.h"
 #include "launchable.h"
 #include "synchrointerface.h"
@@ -27,21 +29,34 @@ public:
      * @var sharedSection Pointeur sur la section partagée
      */
     struct Parameters {
-        Parameters(Locomotive& loco, std::shared_ptr<SynchroInterface> sharedSection) : loco(loco), sharedSection(sharedSection) {}
-        Locomotive& loco;
+        Parameters(Locomotive& loco,
+                   std::shared_ptr<SynchroInterface> sharedSection,
+                   std::int32_t                      station,
+                   std::int32_t                      sectionBegin,
+                   std::int32_t                      sectionEnd)
+            : loco(loco),
+              sharedSection(std::move(sharedSection)),
+              station(station),
+              sectionBegin(sectionBegin),
+              sectionEnd(sectionEnd) {}
+
+        Locomotive&                       loco;
         std::shared_ptr<SynchroInterface> sharedSection;
-        // TODO passer la gare, le début et la fin de la section partagée
+        std::int32_t                      station;
+        std::int32_t                      sectionBegin;
+        std::int32_t                      sectionEnd;
     };
 
-    /*!
+/*!
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
-    LocomotiveBehavior(const Parameters &params) : loco(params.loco), sharedSection(params.sharedSection) {
+    LocomotiveBehavior(const Parameters& params)
+        : loco(params.loco), sharedSection(params.sharedSection) {
         // Eventuel code supplémentaire du constructeur
     }
 
-protected:
+    protected:
     /*!
      * \brief run Fonction lancée par le thread, représente le comportement de la locomotive
      */

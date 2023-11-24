@@ -30,13 +30,14 @@ public:
         Parameters(Locomotive& loco, std::shared_ptr<SynchroInterface> sharedSection) : loco(loco), sharedSection(sharedSection) {}
         Locomotive& loco;
         std::shared_ptr<SynchroInterface> sharedSection;
+        // TODO passer la gare, le début et la fin de la section partagée
     };
 
     /*!
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
-    LocomotiveBehavior(Parameters params) : loco(params.loco), sharedSection(params.sharedSection) {
+    LocomotiveBehavior(const Parameters &params) : loco(params.loco), sharedSection(params.sharedSection) {
         // Eventuel code supplémentaire du constructeur
     }
 

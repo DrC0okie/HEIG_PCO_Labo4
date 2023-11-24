@@ -121,9 +121,9 @@ int cmain()
     std::shared_ptr<SynchroInterface> sharedSection = std::make_shared<Synchro>();
 
     // Paramètres de la locomotive 1
-    LocomotiveBehavior::Parameters locoAParams(locoA, sharedSection);
+    LocomotiveBehavior::Parameters const locoAParams(locoA, sharedSection);
     // Paramètres de la locomotive 2
-    LocomotiveBehavior::Parameters locoBParams(locoB, sharedSection);
+    LocomotiveBehavior::Parameters const locoBParams(locoB, sharedSection);
 
     // Création du thread pour la loco 0
     std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoAParams);

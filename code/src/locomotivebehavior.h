@@ -20,11 +20,23 @@
 class LocomotiveBehavior : public Launchable
 {
 public:
+    /**
+     * @brief La structureParameters encapsule les paramètres du comportement d'une locomotive.
+     *
+     * @var loco La locomotive dont on représente le comportement
+     * @var sharedSection Pointeur sur la section partagée
+     */
+    struct Parameters {
+        Parameters(Locomotive& loco, std::shared_ptr<SynchroInterface> sharedSection) : loco(loco), sharedSection(sharedSection) {}
+        Locomotive& loco;
+        std::shared_ptr<SynchroInterface> sharedSection;
+    };
+
     /*!
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
-    LocomotiveBehavior(Locomotive& loco, std::shared_ptr<SynchroInterface> sharedSection /*, autres paramètres éventuels */) : loco(loco), sharedSection(sharedSection) {
+    LocomotiveBehavior(Parameters params) : loco(params.loco), sharedSection(params.sharedSection) {
         // Eventuel code supplémentaire du constructeur
     }
 

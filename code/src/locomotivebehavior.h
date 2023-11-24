@@ -47,12 +47,16 @@ public:
         std::int32_t                      sectionEnd;
     };
 
-/*!
+    /*!
      * \brief locomotiveBehavior Constructeur de la classe
      * \param loco la locomotive dont on représente le comportement
      */
     LocomotiveBehavior(const Parameters& params)
-        : loco(params.loco), sharedSection(params.sharedSection) {
+        : loco(params.loco),
+          sharedSection(params.sharedSection),
+          station(params.station),
+          sectionBegin(params.sectionBegin),
+          sectionEnd(params.sectionEnd) {
         // Eventuel code supplémentaire du constructeur
     }
 
@@ -87,6 +91,9 @@ public:
      *
      * Par exemple la priorité ou le parcours
      */
+    std::int32_t station;
+    std::int32_t sectionBegin;
+    std::int32_t sectionEnd;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H

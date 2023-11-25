@@ -18,6 +18,8 @@
 #include "ctrain_handler.h"
 #include "synchrointerface.h"
 
+const uint8_t nbToWait = 2;
+
 /**
  * @brief La classe Synchro implémente l'interface SynchroInterface qui
  * propose les méthodes liées à la section partagée.
@@ -30,8 +32,14 @@ public:
      * @brief Synchro Constructeur de la classe qui représente la section partagée.
      * Initialisez vos éventuels attributs ici, sémaphores etc.
      */
-    Synchro() {
-        // TODO
+    Synchro() :
+      mutexSection(1),
+      mutexStation(1),
+      sectionSemaphore(0),
+      stationSemaphore(0),
+      isSectionFree(true),
+      otherIsWaiting(false),
+      nbInStation(0){
     }
 
     /**
@@ -42,10 +50,22 @@ public:
      * @param loco La locomotive qui essaie accéder à la section partagée
      */
     void access(Locomotive &loco) override {
-        // TODO
+        mutexSection.acquire();
+        if (!isSectionFree) {
+            afficher_message(qPrintable(QString("Locomotive %1 is stopping and waiting.").arg(loco.numero())));
+            loco.arreter();
+            otherIsWaiting = true;
+            mutexSection.release();
+            sectionSemaphore.acquire(); // Wait for access to the shared section
+            mutexSection.acquire();
+            otherIsWaiting = false;
+            afficher_message(qPrintable(QString("Locomotive %1 resumes.").arg(loco.numero())));
+            loco.demarrer();
+        }
 
-        // Exemple de message dans la console globale
-        afficher_message(qPrintable(QString("The engine no. %1 accesses the shared section.").arg(loco.numero())));
+        isSectionFree = false;
+        mutexSection.release();
+        afficher_message(qPrintable(QString("Locomotive %1 has accessed the shared section.").arg(loco.numero())));
     }
 
     /**
@@ -56,10 +76,14 @@ public:
      * @param loco La locomotive qui quitte la section partagée
      */
     void leave(Locomotive& loco) override {
-        // TODO
+        mutexSection.acquire();
+        isSectionFree = true;
+        if (otherIsWaiting) {
+            sectionSemaphore.release();
+        }
+        mutexSection.release();
 
-        // Exemple de message dans la console globale
-        afficher_message(qPrintable(QString("The engine no. %1 leaves the shared section.").arg(loco.numero())));
+        afficher_message(qPrintable(QString("Locomotive %1 has left the shared section.").arg(loco.numero())));
     }
 
     /**
@@ -71,17 +95,41 @@ public:
      * @param loco La locomotive qui doit attendre à la gare
      */
     void stopAtStation(Locomotive& loco) override {
-        // TODO
-
-        // Exemple de message dans la console globale
-        afficher_message(qPrintable(QString("The engine no. %1 arrives at the station.").arg(loco.numero())));
+        mutexStation.acquire();
+        nbInStation++;
+        if (nbInStation < nbToWait) {
+            afficher_message(qPrintable(QString("The engine no. %1 arrives at the station.").arg(loco.numero())));
+            mutexStation.release();
+            loco.arreter();
+            stationSemaphore.acquire();
+            afficher_message(qPrintable(QString("The engine no. %1 leaves the station.").arg(loco.numero())));
+            loco.demarrer();
+        } else {
+            afficher_message(qPrintable(QString("The engine no. %1 arrives at the station.").arg(loco.numero())));
+            nbInStation = 0;
+            loco.arreter();
+            afficher_message(qPrintable(QString("Waiting 5 seconds.")));
+            PcoThread::usleep(5000000);
+            // débloquer tous les (nbToWait - 1) threads
+            for (unsigned int i = 0; i < nbToWait - 1; i++) {
+                stationSemaphore.release();
+            }
+            afficher_message(qPrintable(QString("The engine no. %1 leaves the station.").arg(loco.numero())));
+            loco.demarrer();
+            mutexStation.release();
+        }
     }
 
     /* A vous d'ajouter ce qu'il vous faut */
 
 private:
-    // Méthodes privées ...
-    // Attribut privés ...
+    PcoSemaphore mutexSection;
+    PcoSemaphore mutexStation;
+    PcoSemaphore sectionSemaphore;
+    PcoSemaphore stationSemaphore;
+    bool isSectionFree;
+    bool otherIsWaiting;
+    uint8_t nbInStation;
 };
 
 

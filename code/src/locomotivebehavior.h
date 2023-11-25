@@ -33,18 +33,24 @@ public:
                    std::shared_ptr<SynchroInterface> sharedSection,
                    std::int32_t                      station,
                    std::int32_t                      sectionBegin,
-                   std::int32_t                      sectionEnd)
+                   std::int32_t                      sectionEnd,
+                   std::int32_t                     endSectionContactNum,
+                   std::int32_t                     endSectionContactDirection)
             : loco(loco),
               sharedSection(std::move(sharedSection)),
               station(station),
               sectionBegin(sectionBegin),
-              sectionEnd(sectionEnd) {}
+              sectionEnd(sectionEnd),
+              endSectionContactNum(endSectionContactNum),
+              endSectionContactDirection(endSectionContactDirection){}
 
         Locomotive&                       loco;
         std::shared_ptr<SynchroInterface> sharedSection;
         std::int32_t                      station;
         std::int32_t                      sectionBegin;
         std::int32_t                      sectionEnd;
+        std::int32_t                     endSectionContactNum;
+        std::int32_t                     endSectionContactDirection;
     };
 
     /*!
@@ -56,7 +62,9 @@ public:
           sharedSection(params.sharedSection),
           station(params.station),
           sectionBegin(params.sectionBegin),
-          sectionEnd(params.sectionEnd) {
+          sectionEnd(params.sectionEnd),
+          endSectionContactNum(params.endSectionContactNum),
+          endSectionContactDirection(params.endSectionContactDirection){
         // Eventuel code supplémentaire du constructeur
     }
 
@@ -94,6 +102,8 @@ public:
     std::int32_t station;
     std::int32_t sectionBegin;
     std::int32_t sectionEnd;
+    std::int32_t endSectionContactNum;
+    std::int32_t endSectionContactDirection;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H

@@ -26,8 +26,13 @@ void LocomotiveBehavior::run()
     while(true) {
         // On attend qu'une locomotive arrive sur le contact 1.
         // Pertinent de faire ça dans les deux threads? Pas sûr...
-        attendre_contact(1);
-        loco.afficherMessage("J'ai atteint le contact 1");
+        attendre_contact(station);
+        sharedSection->stopAtStation(loco);
+        attendre_contact(sectionBegin);
+        sharedSection->access(loco);
+        diriger_aiguillage(endSectionContactNum, endSectionContactDirection, 0);
+        attendre_contact(sectionEnd);
+        sharedSection->leave(loco);
     }
 }
 

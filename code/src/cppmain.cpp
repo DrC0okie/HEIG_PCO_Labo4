@@ -84,10 +84,10 @@ int cmain()
      ********************************/
 
     // Loco 0
-    locoA.fixerPosition(31, 1);
+    locoA.fixerPosition(1, 2);
 
     // Loco 1
-    locoB.fixerPosition(34, 5);
+    locoB.fixerPosition(5, 6);
 
     /***********
      * Message *
@@ -107,18 +107,22 @@ int cmain()
     LocomotiveBehavior::Parameters const locoAParams(
         locoA,
         sharedSection,
+        1,
         31,
-        31,
-        21
+        21,
+        16,
+        TOUT_DROIT
     );
 
     // Paramètres de la locomotive 2
     LocomotiveBehavior::Parameters const locoBParams(
         locoB,
         sharedSection,
+        5,
         34,
-        34,
-        24
+        24,
+        16,
+        DEVIE
     );
 
     // Création du thread pour la loco 0

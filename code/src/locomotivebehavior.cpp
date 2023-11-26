@@ -17,9 +17,6 @@ void LocomotiveBehavior::run()
     loco.afficherMessage("Ready!");
 
     while(true) {
-        // Handle emergency stop
-        // TODO
-
         attendre_contact(station);
         sharedSection->stopAtStation(loco);
         // Traiter le cas spécial ou la gare n'est pas le warning du block.

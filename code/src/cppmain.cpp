@@ -22,10 +22,13 @@ static Locomotive locoA(1 /* Numéro (pour commande trains sur maquette réelle)
 // Locomotive B
 static Locomotive locoB(2 /* Numéro (pour commande trains sur maquette réelle) */, 12 /* Vitesse */);
 
-//Arret d'urgence
+// Arret d'urgence
 void emergency_stop()
 {
-    // TODO
+    // FIXME: Parfois la loco redémarre car elle arrive a accéder à la section
+    // partagée, ce qui la relance.
+    locoA.arreter();
+    locoB.arreter();
 
     afficher_message("\nSTOP!");
 }

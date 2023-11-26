@@ -16,28 +16,20 @@ void LocomotiveBehavior::run()
     loco.demarrer();
     loco.afficherMessage("Ready!");
 
-    /* A vous de jouer ! */
-
-    // Vous pouvez appeler les méthodes de la section partagée comme ceci :
-    //sharedSection->access(loco);
-    //sharedSection->leave(loco);
-    //sharedSection->stopAtStation(loco);
-
     while(true) {
         // Handle emergency stop
         // TODO
 
-        // Traiter le cas spécial ou la gare est le warning du block
-        if (station == contactWarn) {
-            attendre_contact(station);
-            sharedSection->stopAtStation(loco);
-            sharedSection->access(loco);
-        } else {
-            attendre_contact(station);
-            sharedSection->stopAtStation(loco);
-
-            // Attendre le warning pour savoir s'il faut ralentir ou non.
+        attendre_contact(station);
+        sharedSection->stopAtStation(loco);
+        // Traiter le cas spécial ou la gare n'est pas le warning du block.
+        if (station != contactWarn) {
             attendre_contact(contactWarn);
+        }
+
+        // Accéder à la section partagée, sauf dans le cas de la loco prioritaire
+        // qui a d'office accédé à la section partagée.
+        if (loco.priority > 0) {
             sharedSection->access(loco);
         }
 

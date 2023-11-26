@@ -64,7 +64,7 @@ public:
           contactExit(params.blockSection.contactExit),
           junctionEntry(params.blockSection.junctionEntry),
           junctionExit(params.blockSection.junctionExit) {
-        // Eventuel code supplémentaire du constructeur
+        this->loco.priority = 0; // Pas initialisé par la classe.
     }
 
     protected:
@@ -98,7 +98,6 @@ public:
      *
      * Par exemple la priorité ou le parcours
      */
-    bool            priority = false;
 private:
     std::int32_t    station;
     std::int32_t    contactWarn;

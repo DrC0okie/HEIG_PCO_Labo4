@@ -107,25 +107,15 @@ int cmain()
     LocomotiveBehavior::Parameters const locoAParams({
         locoA,
         1,
-        sharedSection,
-        {21, TOUT_DROIT},
-        {16, TOUT_DROIT},
-        1,
-        31,
-        21,
+        {sharedSection, {21, TOUT_DROIT}, {16, TOUT_DROIT}, 1, 31, 21},
     });
 
     // Paramètres de la locomotive 2
     LocomotiveBehavior::Parameters const locoBParams({
         locoB,
         5,
-        sharedSection,
-        {21, DEVIE},
-        {16, DEVIE},
-        5,
-        34,
-        24,
-});
+        {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24},
+    });
 
     // Création du thread pour la loco 0
     std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoAParams);

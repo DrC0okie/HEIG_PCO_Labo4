@@ -24,14 +24,30 @@ void LocomotiveBehavior::run()
     //sharedSection->stopAtStation(loco);
 
     while(true) {
-        // On attend qu'une locomotive arrive sur le contact 1.
-        // Pertinent de faire ça dans les deux threads? Pas sûr...
-        attendre_contact(station);
-        sharedSection->stopAtStation(loco);
-        attendre_contact(sectionBegin);
-        sharedSection->access(loco);
-        diriger_aiguillage(endSectionContactNum, endSectionContactDirection, 0);
-        attendre_contact(sectionEnd);
+        // Handle emergency stop
+        // TODO
+
+        // Traiter le cas spécial ou la gare est le warning du block
+        if (station == contactWarn) {
+            attendre_contact(station);
+            sharedSection->stopAtStation(loco);
+            sharedSection->access(loco);
+        } else {
+            attendre_contact(station);
+            sharedSection->stopAtStation(loco);
+
+            // Attendre le warning pour savoir s'il faut ralentir ou non.
+            attendre_contact(contactWarn);
+            sharedSection->access(loco);
+        }
+
+        // Diriger l'aiguillage d'entrée dans la section partagée.
+        attendre_contact(contactEnter);
+        diriger_aiguillage(junctionEntry.junctionId, junctionEntry.direction, 0);
+
+        // Diriger l'aiguillage de sortie.
+        diriger_aiguillage(junctionExit.junctionId, junctionExit.direction, 0);
+        attendre_contact(contactExit);
         sharedSection->leave(loco);
     }
 }

@@ -22,6 +22,23 @@
 class LocomotiveBehavior : public Launchable
 {
 public:
+    typedef struct {
+        std::int32_t junctionId;
+        std::int32_t direction;
+    } JunctionSetting;
+
+    /**
+     * A block is a section of tracks where only one locomotive can be at a time.
+     */
+    typedef struct {
+        std::shared_ptr<SynchroInterface> sharedSection;
+        JunctionSetting                   junctionEntry;
+        JunctionSetting                   junctionExit;
+        std::int32_t                      contactWarn;
+        std::int32_t                      contactEnter;
+        std::int32_t                      contactExit;
+    } BlockSection;
+
     /**
      * @brief La structureParameters encapsule les paramètres du comportement d'une locomotive.
      *
@@ -29,22 +46,9 @@ public:
      * @var sharedSection Pointeur sur la section partagée
      */
     struct Parameters {
-        Parameters(Locomotive& loco,
-                   std::shared_ptr<SynchroInterface> sharedSection,
-                   std::int32_t                      station,
-                   std::int32_t                      sectionBegin,
-                   std::int32_t                      sectionEnd)
-            : loco(loco),
-              sharedSection(std::move(sharedSection)),
-              station(station),
-              sectionBegin(sectionBegin),
-              sectionEnd(sectionEnd) {}
-
         Locomotive&                       loco;
-        std::shared_ptr<SynchroInterface> sharedSection;
         std::int32_t                      station;
-        std::int32_t                      sectionBegin;
-        std::int32_t                      sectionEnd;
+        BlockSection                      blockSection;
     };
 
     /*!
@@ -53,11 +57,14 @@ public:
      */
     LocomotiveBehavior(const Parameters& params)
         : loco(params.loco),
-          sharedSection(params.sharedSection),
+          sharedSection(params.blockSection.sharedSection),
           station(params.station),
-          sectionBegin(params.sectionBegin),
-          sectionEnd(params.sectionEnd) {
-        // Eventuel code supplémentaire du constructeur
+          contactWarn(params.blockSection.contactWarn),
+          contactEnter(params.blockSection.contactEnter),
+          contactExit(params.blockSection.contactExit),
+          junctionEntry(params.blockSection.junctionEntry),
+          junctionExit(params.blockSection.junctionExit) {
+        this->loco.priority = 0; // Pas initialisé par la classe.
     }
 
     protected:
@@ -91,9 +98,13 @@ public:
      *
      * Par exemple la priorité ou le parcours
      */
-    std::int32_t station;
-    std::int32_t sectionBegin;
-    std::int32_t sectionEnd;
+private:
+    std::int32_t    station;
+    std::int32_t    contactWarn;
+    std::int32_t    contactEnter;
+    std::int32_t    contactExit;
+    JunctionSetting junctionEntry;
+    JunctionSetting junctionExit;
 };
 
 #endif // LOCOMOTIVEBEHAVIOR_H

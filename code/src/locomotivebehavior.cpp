@@ -16,18 +16,28 @@ void LocomotiveBehavior::run()
     loco.demarrer();
     loco.afficherMessage("Ready!");
 
-    /* A vous de jouer ! */
-
-    // Vous pouvez appeler les méthodes de la section partagée comme ceci :
-    //sharedSection->access(loco);
-    //sharedSection->leave(loco);
-    //sharedSection->stopAtStation(loco);
-
     while(true) {
-        // On attend qu'une locomotive arrive sur le contact 1.
-        // Pertinent de faire ça dans les deux threads? Pas sûr...
-        attendre_contact(1);
-        loco.afficherMessage("J'ai atteint le contact 1");
+        attendre_contact(station);
+        sharedSection->stopAtStation(loco);
+        // Traiter le cas spécial ou la gare n'est pas le warning du block.
+        if (station != contactWarn) {
+            attendre_contact(contactWarn);
+        }
+
+        // Accéder à la section partagée, sauf dans le cas de la loco prioritaire
+        // qui a d'office accédé à la section partagée.
+        if (loco.priority > 0) {
+            sharedSection->access(loco);
+        }
+
+        // Diriger l'aiguillage d'entrée dans la section partagée.
+        attendre_contact(contactEnter);
+        diriger_aiguillage(junctionEntry.junctionId, junctionEntry.direction, 0);
+
+        // Diriger l'aiguillage de sortie.
+        diriger_aiguillage(junctionExit.junctionId, junctionExit.direction, 0);
+        attendre_contact(contactExit);
+        sharedSection->leave(loco);
     }
 }
 

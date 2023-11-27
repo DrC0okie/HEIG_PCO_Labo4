@@ -22,18 +22,19 @@ static Locomotive locoA(1 /* Numéro (pour commande trains sur maquette réelle)
 // Locomotive B
 static Locomotive locoB(2 /* Numéro (pour commande trains sur maquette réelle) */, 12 /* Vitesse */);
 
-//Arret d'urgence
-void emergency_stop()
-{
-    // TODO
+// Arret d'urgence
+void emergency_stop() {
+    locoA.arreter();
+    locoB.arreter();
+    locoA.fixerVitesse(0);
+    locoB.fixerVitesse(0);
 
     afficher_message("\nSTOP!");
 }
 
 
 //Fonction principale
-int cmain()
-{
+int cmain() {
     /************
      * Maquette *
      ************/
@@ -84,10 +85,10 @@ int cmain()
      ********************************/
 
     // Loco 0
-    locoA.fixerPosition(31, 1);
+    locoA.fixerPosition(1, 2);
 
     // Loco 1
-    locoB.fixerPosition(34, 5);
+    locoB.fixerPosition(5, 6);
 
     /***********
      * Message *
@@ -104,22 +105,18 @@ int cmain()
     std::shared_ptr<SynchroInterface> sharedSection = std::make_shared<Synchro>();
 
     // Paramètres de la locomotive 1
-    LocomotiveBehavior::Parameters const locoAParams(
+    LocomotiveBehavior::Parameters const locoAParams({
         locoA,
-        sharedSection,
-        31,
-        31,
-        21
-    );
+        1,
+        {sharedSection, {21, TOUT_DROIT}, {16, TOUT_DROIT}, 1, 31, 21},
+    });
 
     // Paramètres de la locomotive 2
-    LocomotiveBehavior::Parameters const locoBParams(
+    LocomotiveBehavior::Parameters const locoBParams({
         locoB,
-        sharedSection,
-        34,
-        34,
-        24
-    );
+        5,
+        {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24},
+    });
 
     // Création du thread pour la loco 0
     std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoAParams);

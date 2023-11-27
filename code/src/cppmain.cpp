@@ -24,6 +24,14 @@
 
 using JunctionList = std::vector<LocomotiveBehavior::JunctionSetting>;
 
+/**
+ * @brief Encapsulates necessary informations to run a route.
+ *
+ * @param maquetteId The id of the maquette to use.
+ * @param junctions The list of junctions to set.
+ * @param paramsA The parameters of the first locomotive.
+ * @param paramsB The parameters of the second locomotive.
+ */
 struct Route {
     std::string maquetteId;
     JunctionList junctions;
@@ -31,27 +39,41 @@ struct Route {
     LocomotiveBehavior::Parameters paramsB;
 };
 
+/**
+ * @brief The available routes.
+ *
+ * @var ROUTE_1 Route with shared section immediately following the station.
+ * @var ROUTE_2 Short route with no space between station and shared section.
+ * @var ROUTE_3 Route with space between station and shared section.
+ * @var ROUTE_4 Route with shared section immediately before the station.
+ */
 enum class RouteName {
-    ROUTE_1, // Route with shared section immediately following the station
-    ROUTE_2, // Short route with no space between station and shared section
-    ROUTE_3, // Route with space between station and shared section
-    ROUTE_4  // Route with shared section immediately before the station
+    ROUTE_1,
+    ROUTE_2,
+    ROUTE_3,
+    ROUTE_4
 };
 
+/**
+ * @brief Construct a new Route object based on the route name.
+ *
+ * @param route The route name.
+ * @return Route The route object.
+ */
 Route routeFactory(RouteName route);
 
-// Locomotives :
-// Vous pouvez changer les vitesses initiales, ou utiliser la fonction loco.fixerVitesse(vitesse);
-// Laissez les numéros des locos à 0 et 1 pour ce laboratoire
-
 // Locomotive A
-static Locomotive locoA(1 /* Numéro (pour commande trains sur maquette réelle) */, 10 /* Vitesse */);
+static Locomotive locoA(1 , 10);
 
 // Locomotive B
-static Locomotive locoB(2 /* Numéro (pour commande trains sur maquette réelle) */, 12 /* Vitesse */);
+static Locomotive locoB(2 , 12);
 
-// Arret d'urgence
+/**
+ * @brief Stops all locos.
+ */
 void emergency_stop() {
+    // We need to call fixerVitesse, otherwise the locos might glide to a stop,
+    // hit a warning/station contact and start again because of inertia.
     locoA.arreter();
     locoB.arreter();
     locoA.fixerVitesse(0);
@@ -61,7 +83,11 @@ void emergency_stop() {
 }
 
 
-//Fonction principale
+/**
+ * @brief Main function.
+ *
+ * @return int The exit code of the program.
+ */
 int cmain() {
     /*********
      * Route *
@@ -79,9 +105,10 @@ int cmain() {
      * Initialisation des aiguillages *
      **********************************/
 
-     for(const auto& junction : route.junctions) {
-         diriger_aiguillage(junction.junctionId, junction.direction, 0);
-     }
+    // Toggle the junctions to their positions for the current route.
+    for(const auto& junction : route.junctions) {
+        diriger_aiguillage(junction.junctionId, junction.direction, 0);
+    }
 
     /********************************
      * Position de départ des locos *
@@ -119,7 +146,7 @@ int cmain() {
     locoBehaveA->join();
     locoBehaveB->join();
 
-    //Fin de la simulation
+    // Fin de la simulation
     mettre_maquette_hors_service();
 
     return EXIT_SUCCESS;

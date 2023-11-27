@@ -39,8 +39,7 @@ public:
       stationSemaphore(0),
       isSectionFree(true),
       otherIsWaiting(false),
-      isStationOccupied(false){
-    }
+      isStationOccupied(false) {}
 
     /**
      * @brief access Méthode à appeler pour accéder à la section partagée
@@ -51,21 +50,28 @@ public:
      */
     void access(Locomotive& loco) override {
         mutexSection.acquire();
+
+        // If the section isn't free, stop the loco and wait to acquire it.
         if (!isSectionFree) {
+            loco.arreter();
             afficher_message(qPrintable(
                 QString("Loco %1: S'arrête et attend").arg(loco.numero())));
-            loco.arreter();
+
+            // Set the other loco to wait.
             otherIsWaiting = true;
             mutexSection.release();
-            sectionSemaphore .acquire(); // Attente bloquante jusqu'à ce que la
-                                         // section soit libérée.
+
+            // Blockingly wait for the section to be free.
+            sectionSemaphore.acquire();
             mutexSection.acquire();
             otherIsWaiting = false;
+
+            loco.demarrer();
             afficher_message(
                 qPrintable(QString("Loco %1: Redémarre").arg(loco.numero())));
-            loco.demarrer();
         }
 
+        // Set the section to occupied now that a loco has acquired it.
         isSectionFree = false;
         mutexSection.release();
         afficher_message(
@@ -83,9 +89,12 @@ public:
     void leave(Locomotive& loco) override {
         mutexSection.acquire();
         isSectionFree = true;
+
+        // Give access to the other loco if it is waiting.
         if (otherIsWaiting) {
             sectionSemaphore.release();
         }
+
         mutexSection.release();
 
         afficher_message(
@@ -105,52 +114,65 @@ public:
         afficher_message(
             qPrintable(QString("Loco %1: Arrivée en gare").arg(loco.numero())));
 
+        // If the station is empty, stop the loco and set the station to
+        // occupied.
         mutexStation.acquire();
         if (!isStationOccupied) {
-            // S'arrêter et attendre que toutes les locos soient en gare.
             isStationOccupied = true;
             mutexStation.release();
             loco.arreter();
 
-            // Attendre d'être libéré par la dernière loco arrivée.
+            // Wait to be released by the last arrived loco.
             stationSemaphore.acquire();
+
+            // Set the priority (1 being lower priority than 0) and restart the
+            // loco.
             loco.priority = 1;
             loco.demarrer();
         } else {
-            // Arrêter la dernière loco et attendre 5 secondes avant de repartir
-            // avec priorité.
+            // If the station is occupied, wait for 5 seconds and have the last
+            // arrived loco start first by already giving it access to the
+            // shared section.
             isStationOccupied = false;
             loco.arreter();
+
+            // Wait for the 5 seconds.
             afficher_message(qPrintable(
                 QString("Loco %1: Attente de 5 secondes").arg(loco.numero())));
             PcoThread::usleep(5e6);
 
-            // Donner l'accès à la section partagée à la dernière loco arrivée.
+            // Give access to the shared section before releasing other locos so
+            // that we're sure it can't be acquired by another loco.
+            access(loco);
             afficher_message(
                 qPrintable(QString("Loco %1: Prioritaire").arg(loco.numero())));
-            access(loco);
 
-            // Release the semaphore to signal the first loco
+            // Release the semaphore to signal the first loco that it may
+            // continue.
             stationSemaphore.release();
+
+            // Set the loco to the highest priority and restart it.
+            // Note: this is useful in the LocoBehavior::run() while loop in
+            // order to avoid the prioritized loco trying to acquire the shared
+            // section again.
             loco.priority = 0;
             loco.demarrer();
-            mutexStation.release();;
+            mutexStation.release();
+            ;
         }
 
         afficher_message(qPrintable(
             QString("Loco %1: Départ de la gare").arg(loco.numero())));
     }
 
-private:
-    static constexpr uint8_t nbToWait = 2;
-
+    private:
     PcoSemaphore mutexSection;
     PcoSemaphore mutexStation;
     PcoSemaphore sectionSemaphore;
     PcoSemaphore stationSemaphore;
-    bool isSectionFree;
-    bool otherIsWaiting;
-    bool isStationOccupied;
+    bool         isSectionFree;
+    bool         otherIsWaiting;
+    bool         isStationOccupied;
 };
 
 #endif // SYNCHRO_H

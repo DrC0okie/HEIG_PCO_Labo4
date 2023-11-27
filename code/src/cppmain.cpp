@@ -27,8 +27,10 @@ struct Route {
 };
 
 enum class RouteName {
-    ROUTE_1,
-    ROUTE_2,
+    ROUTE_1, // Route with shared section immediately following the station
+    ROUTE_2, // Short route with no space between station and shared section
+    ROUTE_3, // Route with space between station and shared section
+    ROUTE_4  // Route with shared section immediately before the station
 };
 
 Route routeFactory(RouteName route);
@@ -59,7 +61,7 @@ int cmain() {
     /*********
      * Route *
      ********/
-    Route route = routeFactory(RouteName::ROUTE_2);
+    Route route = routeFactory(RouteName::ROUTE_3);
 
     /************
      * Maquette *
@@ -177,6 +179,55 @@ Route routeFactory(RouteName route) {
              // Route junctions
              JunctionList junctions({
                  {20, DEVIE},
+                 {23, DEVIE},
+                 {24, TOUT_DROIT},
+                 {6, TOUT_DROIT},
+                 {5, DEVIE},
+             });
+
+             LocomotiveBehavior::Parameters paramsA = {
+                 locoA, {1, 2}, {sharedSection, {21, TOUT_DROIT}, {2, TOUT_DROIT}, 1, 31, 1}
+             };
+
+             LocomotiveBehavior::Parameters paramsB = {
+                 locoB, {5, 6}, {sharedSection, {21, DEVIE}, {2, DEVIE}, 5, 34, 5}
+             };
+
+             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+         }
+         case RouteName::ROUTE_3: {
+             // Route junctions
+             JunctionList junctions({
+                 {21, DEVIE},
+                 {20, DEVIE},
+                 {23, TOUT_DROIT},
+                 {22, TOUT_DROIT},
+                 {19, TOUT_DROIT},
+                 {16, DEVIE},
+                 {17, TOUT_DROIT},
+                 {9, DEVIE},
+                 {11, TOUT_DROIT},
+                 {7, DEVIE},
+                 {5, TOUT_DROIT},
+                 {4, TOUT_DROIT},
+                 {2, DEVIE},
+                 {1, TOUT_DROIT}
+             });
+
+             LocomotiveBehavior::Parameters paramsA = {
+                 locoA, {1, 2}, {sharedSection, {15, TOUT_DROIT}, {8, TOUT_DROIT}, 29, 22, 10}
+             };
+
+             LocomotiveBehavior::Parameters paramsB = {
+                 locoB, {5, 6}, {sharedSection, {15, DEVIE}, {8, DEVIE}, 33, 25, 14}
+             };
+
+             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+         }
+         case RouteName::ROUTE_4: {
+             // Route junctions
+             JunctionList junctions({
+                 {20, TOUT_DROIT},
                  {23, DEVIE},
                  {24, TOUT_DROIT},
                  {6, TOUT_DROIT},

@@ -158,7 +158,6 @@ public:
             loco.priority = 0;
             loco.demarrer();
             mutexStation.release();
-            ;
         }
 
         afficher_message(qPrintable(

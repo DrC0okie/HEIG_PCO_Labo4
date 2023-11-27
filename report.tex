@@ -56,11 +56,16 @@
 %    Synchronization
 %    Deadlocks
 
+In a concurrent system where two trains are operated by separate threads, it is a synchronization challenge to ensure that both trains coexist in areas where their paths intersect or overlap (critical sections). Critical sections in this context include shared track sections and stations. The tracks, particularly the shared sections, act as shared resources. Without proper synchronization, both trains could attempt to occupy the same section simultaneously, leading to a collision in the simulation. Deadlocks are a significant risk. With two trains, this could occur if both attempt to enter the same shared section from opposite ends and wait indefinitely for the other to leave. Similar to shared sections, stations are points where special synchronization is needed. Both trains might need to use the station simultaneously.
+
     \section{Conception}
-% Talk about how train blocks work in real life
+% Talk about how train blocks work in real life TIM: Really necessary?
 % Talk about which concepts we've used to solve the problem
 % Sections: shared section, station, emergency stop
 
+To address station synchronization, we implemented a barrier mechanism. This ensures that trains can only leave the station when it is fully occupied. Additionally, we integrated a priority system within this barrier, giving precedence to the last train arriving at the station to depart first when the barrier is lifted.
+
+For managing the shared section, we established a synchronization logic. This system ensures that while one train occupies this critical section, the other train waits. As soon as the first train exits the section, the waiting train receives clearance to enter. This approach effectively prevents conflicts and ensures safe passage through the shared track section.
 
     \section{Implementation}
 % Briefly talk about the implementation, giving code examples where necessary

@@ -4,6 +4,11 @@
  * |  ___/| |   | |  | |   / /| | | |/ / |__ <
  * | |    | |___| |__| |  / /_| |_| / /_ ___) |
  * |_|     \_____\____/  |____|\___/____|____/
+ * Authors: Timothée Van Hove and Aubry Mangold
+ * Date: 2023-11-27
+ *
+ * Note: the many routes defined at the bottom of this file are kept for
+ * testing purposes.
  */
 
 #include "ctrain_handler.h"

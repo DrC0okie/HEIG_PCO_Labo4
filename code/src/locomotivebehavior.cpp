@@ -16,8 +16,9 @@ void LocomotiveBehavior::run()
     loco.demarrer();
     loco.afficherMessage("Ready!");
 
+    attendre_contact(station);
+
     while(true) {
-        attendre_contact(station);
         sharedSection->stopAtStation(loco);
         // Traiter le cas spécial ou la gare n'est pas le warning du block.
         if (station != contactWarn) {
@@ -30,14 +31,18 @@ void LocomotiveBehavior::run()
             sharedSection->access(loco);
         }
 
-        // Diriger l'aiguillage d'entrée dans la section partagée.
+        // Diriger les aiguillages lors de l'accès à la section partagée.
         attendre_contact(contactEnter);
         diriger_aiguillage(junctionEntry.junctionId, junctionEntry.direction, 0);
-
-        // Diriger l'aiguillage de sortie.
         diriger_aiguillage(junctionExit.junctionId, junctionExit.direction, 0);
+
+        // Relâcher la section partagée.
         attendre_contact(contactExit);
         sharedSection->leave(loco);
+
+        if (station != contactExit) {
+            attendre_contact(station);
+        }
     }
 }
 

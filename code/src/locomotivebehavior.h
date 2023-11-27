@@ -47,8 +47,7 @@ public:
     /**
      * @brief La structureParameters encapsule les paramètres du comportement d'une locomotive.
      *
-     * @var loco La locomotive dont on représente le comportement
-     * @var sharedSection Pointeur sur la section partagée
+     * TODO: commentaires
      */
     struct Parameters {
         Locomotive&  loco;

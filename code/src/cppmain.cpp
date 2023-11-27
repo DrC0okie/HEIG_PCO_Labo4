@@ -61,7 +61,7 @@ int cmain() {
     /*********
      * Route *
      ********/
-    Route route = routeFactory(RouteName::ROUTE_4);
+    Route route = routeFactory(RouteName::ROUTE_2);
 
     /************
      * Maquette *
@@ -120,6 +120,12 @@ int cmain() {
     return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Construct a new Route object based on the route name.
+ *
+ * @param route The route name.
+ * @return Route The route object.
+ */
 Route routeFactory(RouteName route) {
     std::shared_ptr<SynchroInterface> sharedSection = std::make_shared<Synchro>();
 

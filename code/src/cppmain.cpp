@@ -171,35 +171,12 @@ Route routeFactory(RouteName route) {
                  {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24}
              };
 
-             return Route({junctions, paramsA, paramsB});
+             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
          }
          case RouteName::ROUTE_2: {
              // Route junctions
              JunctionList junctions({
-                 {22, DEVIE     },
-                 {21, TOUT_DROIT},
-                 {20, TOUT_DROIT},
-                 {23, DEVIE     },
-                 {16, DEVIE     },
-                 {15, TOUT_DROIT},
-                 {14, TOUT_DROIT},
-                 {13, TOUT_DROIT},
-                 {10, TOUT_DROIT},
-                 {7,  TOUT_DROIT},
-                 {4,  TOUT_DROIT},
-                 {1,  TOUT_DROIT},
-                 {21, DEVIE     },
-                 {20, TOUT_DROIT},
-                 {23, DEVIE     },
-                 {16, DEVIE     },
-                 {15, TOUT_DROIT},
-                 {14, DEVIE     },
-                 {9,  DEVIE     },
-                 {8,  DEVIE     },
-                 {11, TOUT_DROIT},
-                 {5,  TOUT_DROIT},
-                 {3,  DEVIE     },
-                 {2,  DEVIE     },
+
              });
 
 

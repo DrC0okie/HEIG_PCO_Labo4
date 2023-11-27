@@ -37,7 +37,7 @@ public:
       stationSemaphore(0),
       isSectionFree(true),
       otherIsWaiting(false),
-      nbInStation(0){
+      isStationOccupied(false){
     }
 
     /**
@@ -104,10 +104,9 @@ public:
             qPrintable(QString("Loco %1: Arrivée en gare").arg(loco.numero())));
 
         mutexStation.acquire();
-        nbInStation++;
-
-        if (nbInStation < nbToWait) {
+        if (!isStationOccupied) {
             // S'arrêter et attendre que toutes les locos soient en gare.
+            isStationOccupied = true;
             mutexStation.release();
             loco.arreter();
 
@@ -118,7 +117,7 @@ public:
         } else {
             // Arrêter la dernière loco et attendre 5 secondes avant de repartir
             // avec priorité.
-            nbInStation = 0;
+            isStationOccupied = false;
             loco.arreter();
             afficher_message(qPrintable(
                 QString("Loco %1: Attente de 5 secondes").arg(loco.numero())));
@@ -129,22 +128,16 @@ public:
                 qPrintable(QString("Loco %1: Prioritaire").arg(loco.numero())));
             access(loco);
 
-            // Débloquer toutes les (nbToWait - 1) autres locos
-            for (unsigned int i = 0; i < nbToWait - 1; i++) {
-                stationSemaphore.release();
-            }
-
-            loco.priority = 0;  // Le nombre le plus bas a la priorité et donc
-                                // déjà l'accès à la section partagée.
+            // Release the semaphore to signal the first loco
+            stationSemaphore.release();
+            loco.priority = 0;
             loco.demarrer();
-            mutexStation.release();
+            mutexStation.release();;
         }
 
         afficher_message(qPrintable(
             QString("Loco %1: Départ de la gare").arg(loco.numero())));
     }
-
-    /* A vous d'ajouter ce qu'il vous faut */
 
 private:
     static constexpr uint8_t nbToWait = 2;
@@ -155,8 +148,7 @@ private:
     PcoSemaphore stationSemaphore;
     bool isSectionFree;
     bool otherIsWaiting;
-    uint8_t nbInStation;
+    bool isStationOccupied;
 };
-
 
 #endif // SYNCHRO_H

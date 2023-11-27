@@ -23,6 +23,11 @@ class LocomotiveBehavior : public Launchable
 {
 public:
     typedef struct {
+        std::int32_t front;
+        std::int32_t back;
+    } Station;
+
+    typedef struct {
         std::int32_t junctionId;
         std::int32_t direction;
     } JunctionSetting;
@@ -37,7 +42,7 @@ public:
         std::int32_t                      contactWarn;
         std::int32_t                      contactEnter;
         std::int32_t                      contactExit;
-    } BlockSection;
+    } SharedSection;
 
     /**
      * @brief La structureParameters encapsule les paramètres du comportement d'une locomotive.
@@ -46,9 +51,9 @@ public:
      * @var sharedSection Pointeur sur la section partagée
      */
     struct Parameters {
-        Locomotive&                       loco;
-        std::int32_t                      station;
-        BlockSection                      blockSection;
+        Locomotive&  loco;
+        Station      station;
+        SharedSection blockSection;
     };
 
     /*!
@@ -58,7 +63,7 @@ public:
     LocomotiveBehavior(const Parameters& params)
         : loco(params.loco),
           sharedSection(params.blockSection.sharedSection),
-          station(params.station),
+          station(params.station.front),
           contactWarn(params.blockSection.contactWarn),
           contactEnter(params.blockSection.contactEnter),
           contactExit(params.blockSection.contactExit),

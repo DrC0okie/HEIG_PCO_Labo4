@@ -13,12 +13,33 @@
 #include "synchrointerface.h"
 #include "synchro.h"
 
+#include <string>
+#include <vector>
+
+
+using JunctionList = std::vector<LocomotiveBehavior::JunctionSetting>;
+
+struct Route {
+    std::string maquetteId;
+    JunctionList junctions;
+    LocomotiveBehavior::Parameters paramsA;
+    LocomotiveBehavior::Parameters paramsB;
+};
+
+enum class RouteName {
+    ROUTE_1,
+    ROUTE_2,
+};
+
+Route routeFactory(RouteName route);
+
 // Locomotives :
 // Vous pouvez changer les vitesses initiales, ou utiliser la fonction loco.fixerVitesse(vitesse);
 // Laissez les numéros des locos à 0 et 1 pour ce laboratoire
 
 // Locomotive A
 static Locomotive locoA(1 /* Numéro (pour commande trains sur maquette réelle) */, 10 /* Vitesse */);
+
 // Locomotive B
 static Locomotive locoB(2 /* Numéro (pour commande trains sur maquette réelle) */, 12 /* Vitesse */);
 
@@ -35,60 +56,35 @@ void emergency_stop() {
 
 //Fonction principale
 int cmain() {
+    /*********
+     * Route *
+     ********/
+    Route route = routeFactory(RouteName::ROUTE_1);
+
     /************
      * Maquette *
      ************/
 
-    //Choix de la maquette (A ou B)
-    selection_maquette(MAQUETTE_A);
+    // Choix de la maquette (A ou B)
+    selection_maquette(route.maquetteId.c_str());
 
     /**********************************
      * Initialisation des aiguillages *
      **********************************/
 
-    // Initialisation des aiguillages
-    // Positiion de base donnée comme exemple, vous pouvez la changer comme bon vous semble
-    // Vous devrez utiliser cette fonction pour la section partagée pour aiguiller les locos
-    // sur le bon parcours (par exemple à la sortie de la section partagée) vous pouvez l'
-    // appeler depuis vos thread des locos par ex.
-
-    // Parcours 1
-    diriger_aiguillage(22, DEVIE, 0);
-    diriger_aiguillage(21, TOUT_DROIT, 0);
-    diriger_aiguillage(20, TOUT_DROIT, 0);
-    diriger_aiguillage(23, DEVIE, 0);
-    diriger_aiguillage(16, DEVIE, 0);
-    diriger_aiguillage(15, TOUT_DROIT, 0);
-    diriger_aiguillage(14, TOUT_DROIT, 0);
-    diriger_aiguillage(13, TOUT_DROIT, 0);
-    diriger_aiguillage(10, TOUT_DROIT, 0);
-    diriger_aiguillage(7, TOUT_DROIT, 0);
-    diriger_aiguillage(4, TOUT_DROIT, 0);
-    diriger_aiguillage(1, TOUT_DROIT, 0);
-
-    // Parcours 2
-    diriger_aiguillage(21, DEVIE, 0);
-    diriger_aiguillage(20, TOUT_DROIT, 0);
-    diriger_aiguillage(23, DEVIE, 0);
-    diriger_aiguillage(16, DEVIE, 0);
-    diriger_aiguillage(15, TOUT_DROIT, 0);
-    diriger_aiguillage(14, DEVIE, 0);
-    diriger_aiguillage(9, DEVIE, 0);
-    diriger_aiguillage(8, DEVIE, 0);
-    diriger_aiguillage(11, TOUT_DROIT, 0);
-    diriger_aiguillage(5, TOUT_DROIT, 0);
-    diriger_aiguillage(3, DEVIE, 0);
-    diriger_aiguillage(2, DEVIE, 0);
+     for(const auto& junction : route.junctions) {
+         diriger_aiguillage(junction.junctionId, junction.direction, 0);
+     }
 
     /********************************
      * Position de départ des locos *
      ********************************/
 
-    // Loco 0
-    locoA.fixerPosition(1, 2);
+    // Loco A
+    locoA.fixerPosition(route.paramsA.station.front, route.paramsA.station.back);
 
-    // Loco 1
-    locoB.fixerPosition(5, 6);
+    // Loco B
+    locoB.fixerPosition(route.paramsB.station.front, route.paramsB.station.back);
 
     /***********
      * Message *
@@ -101,27 +97,10 @@ int cmain() {
      * Threads des locos *
      ********************/
 
-    // Création de la section partagée
-    std::shared_ptr<SynchroInterface> sharedSection = std::make_shared<Synchro>();
-
-    // Paramètres de la locomotive 1
-    LocomotiveBehavior::Parameters const locoAParams({
-        locoA,
-        1,
-        {sharedSection, {21, TOUT_DROIT}, {16, TOUT_DROIT}, 1, 31, 21},
-    });
-
-    // Paramètres de la locomotive 2
-    LocomotiveBehavior::Parameters const locoBParams({
-        locoB,
-        5,
-        {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24},
-    });
-
     // Création du thread pour la loco 0
-    std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(locoAParams);
+    std::unique_ptr<Launchable> locoBehaveA = std::make_unique<LocomotiveBehavior>(route.paramsA);
     // Création du thread pour la loco 1
-    std::unique_ptr<Launchable> locoBehaveB = std::make_unique<LocomotiveBehavior>(locoBParams);
+    std::unique_ptr<Launchable> locoBehaveB = std::make_unique<LocomotiveBehavior>(route.paramsB);
 
     // Lanchement des threads
     afficher_message(qPrintable(QString("Lancement thread loco A (numéro %1)").arg(locoA.numero())));
@@ -138,3 +117,112 @@ int cmain() {
 
     return EXIT_SUCCESS;
 }
+
+Route routeFactory(RouteName route) {
+    std::shared_ptr<SynchroInterface> sharedSection = std::make_shared<Synchro>();
+
+    switch (route) {
+         default:
+         case RouteName::ROUTE_1: {
+             // Route junctions
+             JunctionList junctions({
+                 {22, DEVIE     },
+                 {21, TOUT_DROIT},
+                 {20, TOUT_DROIT},
+                 {23, DEVIE     },
+                 {16, DEVIE     },
+                 {15, TOUT_DROIT},
+                 {14, TOUT_DROIT},
+                 {13, TOUT_DROIT},
+                 {10, TOUT_DROIT},
+                 {7,  TOUT_DROIT},
+                 {4,  TOUT_DROIT},
+                 {1,  TOUT_DROIT},
+                 {21, DEVIE     },
+                 {20, TOUT_DROIT},
+                 {23, DEVIE     },
+                 {16, DEVIE     },
+                 {15, TOUT_DROIT},
+                 {14, DEVIE     },
+                 {9,  DEVIE     },
+                 {8,  DEVIE     },
+                 {11, TOUT_DROIT},
+                 {5,  TOUT_DROIT},
+                 {3,  DEVIE     },
+                 {2,  DEVIE     },
+             });
+
+
+             // Paramètres de la locomotive 1
+             LocomotiveBehavior::Parameters paramsA = {
+                 locoA,
+                 {1, 2},
+                 {sharedSection,
+                   {21, TOUT_DROIT},
+                   {16, TOUT_DROIT},
+                   1, 31,
+                   21}
+             };
+
+             // Paramètres de la locomotive 2
+             LocomotiveBehavior::Parameters paramsB = {
+                 locoB,
+                 {5, 6},
+                 {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24}
+             };
+
+             return Route({junctions, paramsA, paramsB});
+         }
+         case RouteName::ROUTE_2: {
+             // Route junctions
+             JunctionList junctions({
+                 {22, DEVIE     },
+                 {21, TOUT_DROIT},
+                 {20, TOUT_DROIT},
+                 {23, DEVIE     },
+                 {16, DEVIE     },
+                 {15, TOUT_DROIT},
+                 {14, TOUT_DROIT},
+                 {13, TOUT_DROIT},
+                 {10, TOUT_DROIT},
+                 {7,  TOUT_DROIT},
+                 {4,  TOUT_DROIT},
+                 {1,  TOUT_DROIT},
+                 {21, DEVIE     },
+                 {20, TOUT_DROIT},
+                 {23, DEVIE     },
+                 {16, DEVIE     },
+                 {15, TOUT_DROIT},
+                 {14, DEVIE     },
+                 {9,  DEVIE     },
+                 {8,  DEVIE     },
+                 {11, TOUT_DROIT},
+                 {5,  TOUT_DROIT},
+                 {3,  DEVIE     },
+                 {2,  DEVIE     },
+             });
+
+
+             // Paramètres de la locomotive 1
+             LocomotiveBehavior::Parameters paramsA = {
+                 locoA,
+                 {1, 2},
+                 {sharedSection,
+                   {21, TOUT_DROIT},
+                   {16, TOUT_DROIT},
+                   1, 31,
+                   21}
+             };
+
+             // Paramètres de la locomotive 2
+             LocomotiveBehavior::Parameters paramsB = {
+                 locoB,
+                 {5, 6},
+                 {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24}
+             };
+
+             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+         }
+    }
+}
+

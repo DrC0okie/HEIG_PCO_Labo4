@@ -100,11 +100,11 @@ public:
      * @param loco La locomotive qui doit attendre à la gare
      */
     void stopAtStation(Locomotive& loco) override {
-        mutexStation.acquire();
-        nbInStation++;
-
         afficher_message(
             qPrintable(QString("Loco %1: Arrivée en gare").arg(loco.numero())));
+
+        mutexStation.acquire();
+        nbInStation++;
 
         if (nbInStation < nbToWait) {
             // S'arrêter et attendre que toutes les locos soient en gare.
@@ -122,7 +122,7 @@ public:
             loco.arreter();
             afficher_message(qPrintable(
                 QString("Loco %1: Attente de 5 secondes").arg(loco.numero())));
-            PcoThread::usleep(1000000);  // FIXME
+            PcoThread::usleep(5e6);
 
             // Donner l'accès à la section partagée à la dernière loco arrivée.
             afficher_message(

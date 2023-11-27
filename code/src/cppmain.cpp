@@ -24,7 +24,6 @@ static Locomotive locoB(2 /* Numéro (pour commande trains sur maquette réelle)
 
 // Arret d'urgence
 void emergency_stop() {
-    // partagée, ce qui la relance.
     locoA.arreter();
     locoB.arreter();
     locoA.fixerVitesse(0);

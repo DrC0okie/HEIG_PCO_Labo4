@@ -44,7 +44,7 @@
 
     The goal of this lab is to implement the management of a shared rail section in a train simulation.
     The source code of the simulator and a program boilerplate for the student program are provided.
-    The simulator is a multithreaded program that simulates the behavior of a train on a rail network, leading to
+    The simulator is a multi threaded program that simulates the behavior of a train on a rail network, leading to
     synchronization problems.
     The student program must implement the management of the shared rail section, the synchronization between the trains
     at the station and an emergency stop system.
@@ -58,7 +58,7 @@
 
     In a concurrent system where two trains are operated by separate threads, it is a synchronization challenge to ensure that both trains coexist in areas where their paths intersect or overlap (critical sections). Critical sections in this context include shared track sections and stations. The tracks, particularly the shared sections, act as shared resources. Without proper synchronization, both trains could attempt to occupy the same section simultaneously, leading to a collision in the simulation. Deadlocks are a significant risk. With two trains, this could occur if both attempt to enter the same shared section from opposite ends and wait indefinitely for the other to leave. Similar to shared sections, stations are points where special synchronization is needed. Both trains might need to use the station simultaneously.
 
-    To solve the critical sections challenges we are going to use both active waiting to ensure the access to only 1 train and mutual exclusion to ensure that the shared resources areaccessed correctly. 
+    To solve the critical sections challenges we are going to use both active waiting to ensure the access to only 1 train and mutual exclusion to ensure that the shared resources are accessed correctly. 
 
     \section{Conception}
 % Talk about how train blocks work in real life TIM: Really necessary?
@@ -68,6 +68,8 @@
     To address station synchronization, we implemented a barrier mechanism. This ensures that trains can only leave the station when it is fully occupied. Additionally, we integrated a priority system within this barrier, giving precedence to the last train arriving at the station to depart first when the barrier is lifted.
 
     For managing the shared section, we established a synchronization logic. This system ensures that while one train occupies this critical section, the other train waits. As soon as the first train exits the section, the waiting train receives clearance to enter. This approach effectively prevents conflicts and ensures safe passage through the shared track section.
+
+    \newpage
 
     \section{Implementation}
 % Briefly talk about the implementation, giving code examples where necessary
@@ -79,7 +81,7 @@
     Synchronization of shared track sections is a critical aspect of our implementation. We employed the Synchro class to manage access to these sections. The methods access(), leave(), and stopAtStation() ensure that only one train occupies a shared section at any given time, effectively preventing the risk of collisions.
 
     \begin{lstlisting}
-        void access(Locomotive& loco) override {
+    void access(Locomotive& loco) override {
         mutexSection.acquire();
 
         // If the section isn't free, stop the loco and wait to acquire it.
@@ -94,7 +96,6 @@
             sectionSemaphore.acquire();
             mutexSection.acquire();
             otherIsWaiting = false;
-
             loco.demarrer();
         }
 
@@ -105,7 +106,7 @@
     \end{lstlisting}
 
     \begin{lstlisting}
-        void leave(Locomotive& loco) override {
+    void leave(Locomotive& loco) override {
         mutexSection.acquire();
         isSectionFree = true;
 
@@ -113,11 +114,11 @@
         if (otherIsWaiting) {
             sectionSemaphore.release();
         }
-
         mutexSection.release();
-
     }
     \end{lstlisting}
+
+    \newpage
 
     Station management is another key feature. To control access to the station and ensure orderly operation, we implemented a barrier-like mechanism. This approach not only manages station occupancy but also assigns departure priority to the last train that arrives at the station.
 
@@ -165,15 +166,9 @@
 
     The simulation is initiated with the launching of the locomotive threads. It runs continuously, monitoring for any external conditions or the activation of the emergency stop, which would bring the operation to a halt. Upon conclusion, the simulation is gracefully terminated, ensuring the proper shutdown of all threads and the safe state of the train model system.
 
-    
-
-%Code listing
-    \begin{lstlisting}
-    \end{lstlisting}
-
+    \newpage
 
     \section{Tests}
-
     \subsection*{Shared section}
     % Describe the tests we've done to ensure the correctness of our implementation. This section is worth some points.
     In the testing phase of our train simulation system, we conducted a series of tests to ensure the robustness and reliability of our implementation. These tests were designed to cover a variety of scenarios, each introducing different complexities and challenges.
@@ -192,12 +187,25 @@
 
 
     \subsection*{Station synchronization}
-
+        We validated that the last train to enter the station was the first one to leave the station. Furthermore, we've validated that there are no hiccups in the second locomotive that has to wait in the station.
     \subsection*{Emergency stop}
-
+    
+    We tested the emergency stop in different scenarios with the inertia taken into account:
+    \begin{itemize}
+        \item Just before the station. Inertia makes the train enter the station
+        \item Just before the critical section. Inertia makes the train enter the section
+        \item when only 1 train is the station
+        \item when both trains are outside the station
+        \item when both trains are outside the critical section
+    \end{itemize}
+    
     \section{Conclusion}
 
+    In conclusion, our train simulation system successfully demonstrates the application of concurrent programming principles to a complex, real-world scenario. By employing semaphores and synchronization techniques, we effectively managed shared resources and ensured safe, conflict-free operation of two trains on a single track system. The diverse testing scenarios further validated the robustness of our implementation.
+    
     \appendix
+
+    \newpage
 
     \section{Train routes}
     % images of the train routes used in the tests

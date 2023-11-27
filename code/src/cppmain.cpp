@@ -61,7 +61,7 @@ int cmain() {
     /*********
      * Route *
      ********/
-    Route route = routeFactory(RouteName::ROUTE_3);
+    Route route = routeFactory(RouteName::ROUTE_4);
 
     /************
      * Maquette *
@@ -227,19 +227,27 @@ Route routeFactory(RouteName route) {
          case RouteName::ROUTE_4: {
              // Route junctions
              JunctionList junctions({
-                 {20, TOUT_DROIT},
-                 {23, DEVIE},
-                 {24, TOUT_DROIT},
-                 {6, TOUT_DROIT},
-                 {5, DEVIE},
+               {21, DEVIE},
+                 {20, DEVIE},
+                 {23, TOUT_DROIT},
+                 {22, TOUT_DROIT},
+                 {19, TOUT_DROIT},
+                 {16, TOUT_DROIT},
+                 {17, TOUT_DROIT},
+                 {14, DEVIE},
+                 {13, TOUT_DROIT},
+                 {10, DEVIE},
+                 {11, TOUT_DROIT},
+                 {5, TOUT_DROIT},
+                 {3, DEVIE}
              });
 
              LocomotiveBehavior::Parameters paramsA = {
-                 locoA, {1, 2}, {sharedSection, {21, TOUT_DROIT}, {2, TOUT_DROIT}, 1, 31, 1}
+                 locoA, {1, 2}, {sharedSection, {9, TOUT_DROIT}, {2, TOUT_DROIT}, 19, 13, 1}
              };
 
              LocomotiveBehavior::Parameters paramsB = {
-                 locoB, {5, 6}, {sharedSection, {21, DEVIE}, {2, DEVIE}, 5, 34, 5}
+                 locoB, {5, 6}, {sharedSection, {9, DEVIE}, {2, DEVIE}, 23, 16, 5}
              };
 
              return Route({MAQUETTE_A, junctions, paramsA, paramsB});

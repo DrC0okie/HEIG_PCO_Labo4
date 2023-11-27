@@ -1,0 +1,96 @@
+% This document is designed to produce a french speaking report.
+
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[main=english]{babel}
+\usepackage{url}
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage[a4paper, margin=2cm, footskip=18.3pt]{geometry}
+\usepackage{listings}
+\usepackage{pdflscape}
+\usepackage{color}
+
+\newcommand{\header} {
+    \setlength{\headheight}{30pt}\pagestyle{fancy}
+    \fancyhead[L]{\includegraphics[height=20pt]{~/Templates/heig-logo}}\fancyhead[C]{PCO 2023\\ Lab 4}
+    \fancyhead[R]{Timothée Van Hove et Aubry Mangold\\\today}\fancyfoot[C]{}
+    \fancyfoot[R]{Page \thepage~sur \pageref{LastPage}}\renewcommand{\footrulewidth}{0.3pt}
+}
+
+\lstset{frame=tb,
+    language=C++,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=none,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
+}
+
+\begin{document}
+    \header
+
+
+    \section{Introduction}
+
+    The goal of this lab is to implement the management of a shared rail section in a train simulation.
+    The source code of the simulator and a program boilerplate for the student program are provided.
+    The simulator is a multithreaded program that simulates the behavior of a train on a rail network, leading to
+    synchronization problems.
+    The student program must implement the management of the shared rail section, the synchronization between the trains
+    at the station and an emergency stop system.
+
+    \section{Analysis}
+% Talk about the problems arising from having two trains running on two threads that need to be synchoronized
+%    Shared resources
+%    Critical sections
+%    Synchronization
+%    Deadlocks
+
+    \section{Conception}
+% Talk about how train blocks work in real life
+% Talk about which concepts we've used to solve the problem
+% Sections: shared section, station, emergency stop
+
+
+    \section{Implementation}
+% Briefly talk about the implementation, giving code examples where necessary
+
+
+%Code listing
+    \begin{lstlisting}
+    \end{lstlisting}
+
+
+    \section{Tests}
+
+    \subsection*{Shared section}
+% Describe the tests we've done to ensure the correctness of our implementation. This section is worth some points.
+    - Run the provided train route
+    - Run a route with the shared section right next to the station
+    - Run a route with the shared section right before the station
+    - Run a route with the share section separated from the station by a few blocks
+    - Run a route with two shared sections
+    - Run a route where there is only a station and a shared section
+
+    \subsection*{Station synchronization}
+
+    \subsection*{Emergency stop}
+
+    \section{Conclusion}
+
+    \appendix
+
+    \section{Train routes}
+    % images of the train routes used in the tests
+
+\end{document}

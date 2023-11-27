@@ -85,6 +85,7 @@ class LocomotiveBehavior : public Launchable {
 
     /**
      * @brief locomotiveBehavior Class constructor.
+     *
      * @param params The parameters of the locomotive behavior.
      */
     explicit LocomotiveBehavior(const Parameters& params)
@@ -126,18 +127,17 @@ class LocomotiveBehavior : public Launchable {
      */
     std::shared_ptr<SynchroInterface> sharedSection;
 
-    /*
-     * Vous êtes libres d'ajouter des méthodes ou attributs
-     *
-     * Par exemple la priorité ou le parcours
-     */
     private:
-    std::int32_t    station;
-    std::int32_t    contactWarn;
-    std::int32_t    contactEnter;
-    std::int32_t    contactExit;
-    JunctionSetting junctionEntry;
-    JunctionSetting junctionExit;
+    std::int32_t station;           // The station of the locomotive.
+    std::int32_t contactWarn;       // The contact that triggers checking if the
+                                    // shared section is free.
+    std::int32_t contactEnter;      // The contact that triggers the junction
+                                    // setting to enter the shared section.
+    std::int32_t contactExit;       // The contact that triggers the junction
+                                    // setting to exit the shared section and
+                                    // signal it free.
+    JunctionSetting junctionEntry;  // The junction setting to enter the block.
+    JunctionSetting junctionExit;   // The junction setting to exit the block.
 };
 
 #endif  // LOCOMOTIVEBEHAVIOR_H

@@ -13,35 +13,39 @@
 
 void LocomotiveBehavior::run()
 {
-    //Initialisation de la locomotive
+    // Locomotive initialization.
     loco.allumerPhares();
     loco.demarrer();
     loco.afficherMessage("Ready!");
 
+    // Initial entry into the station.
     attendre_contact(station);
 
     while(true) {
         sharedSection->stopAtStation(loco);
-        // Traiter le cas spécial ou la gare n'est pas le warning du block.
+
+        // Wait for the warning contact to be triggered, if any.
         if (station != contactWarn) {
             attendre_contact(contactWarn);
         }
 
-        // Accéder à la section partagée, sauf dans le cas de la loco prioritaire
-        // qui a d'office accédé à la section partagée.
+        // Access the shared section, unless the locomotive has priority, in
+        // which case it was already granted access to the shared section.
         if (loco.priority > 0) {
             sharedSection->access(loco);
         }
 
-        // Diriger les aiguillages lors de l'accès à la section partagée.
+        // Only once we are _in_ the sections do we toggle the junctions.
         attendre_contact(contactEnter);
         diriger_aiguillage(junctionEntry.junctionId, junctionEntry.direction, 0);
         diriger_aiguillage(junctionExit.junctionId, junctionExit.direction, 0);
 
-        // Relâcher la section partagée.
+        // Release the shared section after passing the exit contact.
         attendre_contact(contactExit);
         sharedSection->leave(loco);
 
+        // Wait for the station contact if it is different from the section
+        // exit contact.
         if (station != contactExit) {
             attendre_contact(station);
         }

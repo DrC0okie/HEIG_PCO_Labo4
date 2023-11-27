@@ -70,6 +70,17 @@ For managing the shared section, we established a synchronization logic. This sy
     \section{Implementation}
 % Briefly talk about the implementation, giving code examples where necessary
 
+    In the implementation of our train simulation system, we began by creating distinct routes for each locomotive. These routes are dynamically generated using the routeFactory function, which not only sets up specific track junction configurations but also establishes parameters for each train's journey, including how they navigate shared track sections.
+
+    In the main function, we initialize the model railway system, including setting up the model turnouts based on the selected route. Locomotives A and B are initialized with unique identifiers and predetermined speeds, and their starting positions are determined by the route configuration. Then, two threads launch an instance of the runnable locomotivebehavior class. In this class, the run() method is responsible for dictating the locomotive's actions, encompassing station stops, navigation through shared sections, and responses to track junctions.
+
+    Synchronization of shared track sections is a critical aspect of our implementation. We employed the Synchro class to manage access to these sections. The methods access(), leave(), and stopAtStation() ensure that only one train occupies a shared section at any given time, effectively preventing the risk of collisions.
+
+    Station management is another key feature. To control access to the station and ensure orderly operation, we implemented a barrier-like mechanism. This approach not only manages station occupancy but also assigns departure priority to the last train that arrives at the station.
+
+    For safety, an emergency stop function was integrated. This function can be invoked to immediately halt both locomotives, setting their speeds to zero and ensuring an instantaneous stop.
+
+    The simulation is initiated with the launching of the locomotive threads. It runs continuously, monitoring for any external conditions or the activation of the emergency stop, which would bring the operation to a halt. Upon conclusion, the simulation is gracefully terminated, ensuring the proper shutdown of all threads and the safe state of the train model system.
 
 %Code listing
     \begin{lstlisting}
@@ -79,13 +90,21 @@ For managing the shared section, we established a synchronization logic. This sy
     \section{Tests}
 
     \subsection*{Shared section}
-% Describe the tests we've done to ensure the correctness of our implementation. This section is worth some points.
-    - Run the provided train route
-    - Run a route with the shared section right next to the station
-    - Run a route with the shared section right before the station
-    - Run a route with the share section separated from the station by a few blocks
-    - Run a route with two shared sections
-    - Run a route where there is only a station and a shared section
+    % Describe the tests we've done to ensure the correctness of our implementation. This section is worth some points.
+    In the testing phase of our train simulation system, we conducted a series of tests to ensure the robustness and reliability of our implementation. These tests were designed to cover a variety of scenarios, each introducing different complexities and challenges.
+
+    \textbf{Testing with the Provided Train Route:} Initially, we tested the system using the provided default train route. This served as a baseline to verify the fundamental functionality of our implementation, including basic movement of the trains and basic synchronization in shared sections and at stations.
+
+    \textbf{Shared Section Adjacent to the Station:} In this test, we evaluated the system's behavior when the shared section is located immediately next to the station. This scenario tested the synchronization logic's ability to handle rapid access to the shared section and the station.
+
+    \textbf{Shared Section Just Before the Station:} Another scenario placed the shared section right before the station. This setup was aimed to tes the system's handling the efficiency of our synchronization mechanism, as trains transitioned quickly from a shared section to a station stop.
+
+    \textbf{Shared Section Separated from the Station:} We also tested a route where the shared section was separated from the station by a few blocks. This scenario was aimed at evaluating the system under a more spread-out configuration, ensuring that our synchronization logic remained effective.
+
+    \textbf{Route with Two Shared Sections:} Going further, we introduced a route featuring two shared sections. This more complex scenario tested the system's capability to manage multiple critical sections simultaneously, ensuring that each train could navigate through these sections without conflicts or deadlocks.
+
+    \textbf{Route with Only a Station and a Shared Section:} Finally, we tested a minimalist route that included only a station and a shared section. This scenario allowed us to focus on the core functionality of our system, ensuring that even in a simplified setup, the trains could coordinate effectively, demonstrating the scalability and adaptability of our synchronization logic.
+
 
     \subsection*{Station synchronization}
 

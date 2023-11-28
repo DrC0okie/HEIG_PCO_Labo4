@@ -32,8 +32,8 @@ class LocomotiveBehavior : public Launchable {
      * @param back The back contact of the station.
      */
     typedef struct {
-        std::int32_t front;
-        std::int32_t back;
+        const std::int32_t front;
+        const std::int32_t back;
     } Station;
 
     /**
@@ -43,15 +43,15 @@ class LocomotiveBehavior : public Launchable {
      * @param direction The junction direction.
      */
     typedef struct {
-        std::int32_t junctionId;
-        std::int32_t direction;
+        const std::int32_t junctionId;
+        const std::int32_t direction;
     } JunctionSetting;
 
     /**
      * A block is a section of tracks where only one locomotive can be at a
      * time.
      *
-     * @param sharedSection The shared section object.
+     * @param synchro The synchronisation interface object.
      * @param junctionEntry The junction setting to enter the block.
      * @param junctionExit The junction setting to exit the block.
      * @param contactWarn The contact that triggers checking if the shared
@@ -62,12 +62,12 @@ class LocomotiveBehavior : public Launchable {
      * the shared section and signal it free.
      */
     typedef struct {
-        std::shared_ptr<SynchroInterface> sharedSection;
-        JunctionSetting                   junctionEntry;
-        JunctionSetting                   junctionExit;
-        std::int32_t                      contactWarn;
-        std::int32_t                      contactEnter;
-        std::int32_t                      contactExit;
+        const std::shared_ptr<SynchroInterface> synchro;
+        const JunctionSetting                   junctionEntry;
+        const JunctionSetting                   junctionExit;
+        const std::int32_t                      contactWarn;
+        const std::int32_t                      contactEnter;
+        const std::int32_t                      contactExit;
     } SharedSection;
 
     /**
@@ -78,9 +78,9 @@ class LocomotiveBehavior : public Launchable {
      * @param blockSection The block section shared by the locomotives.
      */
     struct Parameters {
-        Locomotive&   loco;
-        Station       station;
-        SharedSection blockSection;
+        Locomotive&                loco;
+        Station                    station;
+        std::vector<SharedSection> sections;
     };
 
     /**
@@ -90,13 +90,8 @@ class LocomotiveBehavior : public Launchable {
      */
     explicit LocomotiveBehavior(const Parameters& params)
         : loco(params.loco),
-          sharedSection(params.blockSection.sharedSection),
-          station(params.station.front),
-          contactWarn(params.blockSection.contactWarn),
-          contactEnter(params.blockSection.contactEnter),
-          contactExit(params.blockSection.contactExit),
-          junctionEntry(params.blockSection.junctionEntry),
-          junctionExit(params.blockSection.junctionExit) {
+          sections(params.sections),
+          station(params.station.front) {
         this->loco.priority = 0;  // Not initialized by the Loco class itself.
     }
 
@@ -122,22 +117,16 @@ class LocomotiveBehavior : public Launchable {
      */
     Locomotive& loco;
 
-    /**
-     * @brief sharedSection Pointeur sur la section partagée
-     */
-    std::shared_ptr<SynchroInterface> sharedSection;
-
     private:
-    std::int32_t station;           // The station of the locomotive.
-    std::int32_t contactWarn;       // The contact that triggers checking if the
-                                    // shared section is free.
-    std::int32_t contactEnter;      // The contact that triggers the junction
-                                    // setting to enter the shared section.
-    std::int32_t contactExit;       // The contact that triggers the junction
-                                    // setting to exit the shared section and
-                                    // signal it free.
-    JunctionSetting junctionEntry;  // The junction setting to enter the block.
-    JunctionSetting junctionExit;   // The junction setting to exit the block.
+    /**
+     * @brief sections The shared sections the locomotive is passing through.
+     */
+    const std::vector<SharedSection> sections;
+
+    /**
+     * @brief station The station of the locomotive.
+     */
+    const std::int32_t station;
 };
 
 #endif  // LOCOMOTIVEBEHAVIOR_H

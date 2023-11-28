@@ -21,32 +21,39 @@ void LocomotiveBehavior::run()
     // Initial entry into the station.
     attendre_contact(station);
 
-    while(true) {
-        sharedSection->stopAtStation(loco);
+    while (true) {
+        sections.front().synchro->stopAtStation(loco);
 
-        // Wait for the warning contact to be triggered, if any.
-        if (station != contactWarn) {
-            attendre_contact(contactWarn);
+        // Go through each section
+        for (const auto& section : sections) {
+            // Wait for the warning contact to be triggered, if any.
+            if (section.contactWarn != station) {
+                attendre_contact(section.contactWarn);
+            }
+
+            // The first departed locomotive gets priority in the first shared
+            // section and then has its priority incremented to normal.
+            if (loco.priority == 0) {
+                loco.priority++;
+            } else {
+                section.synchro->access(loco);
+            }
+
+            // Toggle the junctions once the section entry contact is hit.
+            attendre_contact(section.contactEnter);
+            diriger_aiguillage(section.junctionEntry.junctionId,
+                               section.junctionEntry.direction, 0);
+            diriger_aiguillage(section.junctionExit.junctionId,
+                               section.junctionExit.direction, 0);
+
+            // Release the shared section after passing the exit contact.
+            attendre_contact(section.contactExit);
+            section.synchro->leave(loco);
         }
-
-        // Access the shared section, unless the locomotive has priority, in
-        // which case it was already granted access to the shared section.
-        if (loco.priority > 0) {
-            sharedSection->access(loco);
-        }
-
-        // Only once we are _in_ the sections do we toggle the junctions.
-        attendre_contact(contactEnter);
-        diriger_aiguillage(junctionEntry.junctionId, junctionEntry.direction, 0);
-        diriger_aiguillage(junctionExit.junctionId, junctionExit.direction, 0);
-
-        // Release the shared section after passing the exit contact.
-        attendre_contact(contactExit);
-        sharedSection->leave(loco);
 
         // Wait for the station contact if it is different from the section
         // exit contact.
-        if (station != contactExit) {
+        if (station != sections.back().contactExit) {
             attendre_contact(station);
         }
     }

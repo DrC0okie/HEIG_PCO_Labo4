@@ -33,10 +33,10 @@ using JunctionList = std::vector<LocomotiveBehavior::JunctionSetting>;
  * @param paramsB The parameters of the second locomotive.
  */
 struct Route {
-    std::string maquetteId;
-    JunctionList junctions;
-    LocomotiveBehavior::Parameters paramsA;
-    LocomotiveBehavior::Parameters paramsB;
+    const std::string maquetteId;
+    const JunctionList junctions;
+    const LocomotiveBehavior::Parameters paramsA;
+    const LocomotiveBehavior::Parameters paramsB;
 };
 
 /**
@@ -46,12 +46,14 @@ struct Route {
  * @var ROUTE_2 Short route with no space between station and shared section.
  * @var ROUTE_3 Route with space between station and shared section.
  * @var ROUTE_4 Route with shared section immediately before the station.
+ * @var ROUTE_5 Route with two shared sections.
  */
 enum class RouteName {
     ROUTE_1,
     ROUTE_2,
     ROUTE_3,
-    ROUTE_4
+    ROUTE_4,
+    ROUTE_5,
 };
 
 /**
@@ -92,7 +94,7 @@ int cmain() {
     /*********
      * Route *
      ********/
-    Route route = routeFactory(RouteName::ROUTE_2);
+    const Route route = routeFactory(RouteName::ROUTE_5);
 
     /************
      * Maquette *
@@ -106,7 +108,7 @@ int cmain() {
      **********************************/
 
     // Toggle the junctions to their positions for the current route.
-    for(const auto& junction : route.junctions) {
+    for (const auto& junction : route.junctions) {
         diriger_aiguillage(junction.junctionId, junction.direction, 0);
     }
 
@@ -159,137 +161,179 @@ int cmain() {
  * @return Route The route object.
  */
 Route routeFactory(RouteName route) {
-    std::shared_ptr<SynchroInterface> sharedSection = std::make_shared<Synchro>();
+    std::shared_ptr<SynchroInterface> synchro1 = std::make_shared<Synchro>();
 
     switch (route) {
-         default:
-         case RouteName::ROUTE_1: {
-             // Route junctions
-             JunctionList junctions({
-                 {22, DEVIE     },
-                 {21, TOUT_DROIT},
-                 {20, TOUT_DROIT},
-                 {23, DEVIE     },
-                 {16, DEVIE     },
-                 {15, TOUT_DROIT},
-                 {14, TOUT_DROIT},
-                 {13, TOUT_DROIT},
-                 {10, TOUT_DROIT},
-                 {7,  TOUT_DROIT},
-                 {4,  TOUT_DROIT},
-                 {1,  TOUT_DROIT},
-                 {21, DEVIE     },
-                 {20, TOUT_DROIT},
-                 {23, DEVIE     },
-                 {16, DEVIE     },
-                 {15, TOUT_DROIT},
-                 {14, DEVIE     },
-                 {9,  DEVIE     },
-                 {8,  DEVIE     },
-                 {11, TOUT_DROIT},
-                 {5,  TOUT_DROIT},
-                 {3,  DEVIE     },
-                 {2,  DEVIE     },
-             });
+        default:
+        case RouteName::ROUTE_1: {
+            // Route junctions
+            JunctionList junctions({
+                {22, DEVIE     },
+                {20, TOUT_DROIT},
+                {23, DEVIE     },
+                {16, DEVIE     },
+                {15, TOUT_DROIT},
+                {13, TOUT_DROIT},
+                {10, TOUT_DROIT},
+                {7,  TOUT_DROIT},
+                {4,  TOUT_DROIT},
+                {1,  TOUT_DROIT},
+                {14, DEVIE     },
+                {9,  DEVIE     },
+                {8,  DEVIE     },
+                {11, TOUT_DROIT},
+                {5,  TOUT_DROIT},
+                {3,  DEVIE     },
+                {2,  DEVIE     },
+            });
 
 
-             // Paramètres de la locomotive 1
-             LocomotiveBehavior::Parameters paramsA = {
-                 locoA,
-                 {1, 2},
-                 {sharedSection,
-                   {21, TOUT_DROIT},
-                   {16, TOUT_DROIT},
-                   1, 31,
-                   21}
-             };
+            // Paramètres de la locomotive 1
+            LocomotiveBehavior::Parameters paramsA = {
+                locoA,
+                {1, 2},
+                {{synchro1, {21, TOUT_DROIT}, {16, TOUT_DROIT}, 1, 31, 21}}
+            };
 
-             // Paramètres de la locomotive 2
-             LocomotiveBehavior::Parameters paramsB = {
-                 locoB,
-                 {5, 6},
-                 {sharedSection, {21, DEVIE}, {16, DEVIE}, 5, 34, 24}
-             };
+            // Paramètres de la locomotive 2
+            LocomotiveBehavior::Parameters paramsB = {
+                locoB,
+                {5, 6},
+                {{synchro1, {21, DEVIE}, {16, DEVIE}, 5, 34, 24}}
+            };
 
-             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
-         }
-         case RouteName::ROUTE_2: {
-             // Route junctions
-             JunctionList junctions({
-                 {20, DEVIE},
-                 {23, DEVIE},
-                 {24, TOUT_DROIT},
-                 {6, TOUT_DROIT},
-                 {5, DEVIE},
-             });
+            return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+        }
+        case RouteName::ROUTE_2: {
+            // Route junctions
+            JunctionList junctions({
+                {20, DEVIE     },
+                {23, DEVIE     },
+                {24, TOUT_DROIT},
+                {6,  TOUT_DROIT},
+                {5,  DEVIE     },
+            });
 
-             LocomotiveBehavior::Parameters paramsA = {
-                 locoA, {1, 2}, {sharedSection, {21, TOUT_DROIT}, {2, TOUT_DROIT}, 1, 31, 1}
-             };
+            LocomotiveBehavior::Parameters paramsA = {
+                locoA,
+                {1, 2},
+                {{synchro1, {21, TOUT_DROIT}, {2, TOUT_DROIT}, 1, 31, 1}},
+            };
 
-             LocomotiveBehavior::Parameters paramsB = {
-                 locoB, {5, 6}, {sharedSection, {21, DEVIE}, {2, DEVIE}, 5, 34, 5}
-             };
+            LocomotiveBehavior::Parameters paramsB = {
+                locoB, {5, 6},
+                {{synchro1, {21, DEVIE}, {2, DEVIE}, 5, 34, 5}},
+            };
 
-             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
-         }
-         case RouteName::ROUTE_3: {
-             // Route junctions
-             JunctionList junctions({
-                 {21, DEVIE},
-                 {20, DEVIE},
-                 {23, TOUT_DROIT},
-                 {22, TOUT_DROIT},
-                 {19, TOUT_DROIT},
-                 {16, DEVIE},
-                 {17, TOUT_DROIT},
-                 {9, DEVIE},
-                 {11, TOUT_DROIT},
-                 {7, DEVIE},
-                 {5, TOUT_DROIT},
-                 {4, TOUT_DROIT},
-                 {2, DEVIE},
-                 {1, TOUT_DROIT}
-             });
+            return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+        }
+        case RouteName::ROUTE_3: {
+            // Route junctions
+            JunctionList junctions({
+                {21, DEVIE     },
+                {20, DEVIE     },
+                {23, TOUT_DROIT},
+                {22, TOUT_DROIT},
+                {19, TOUT_DROIT},
+                {16, DEVIE     },
+                {17, TOUT_DROIT},
+                {9,  DEVIE     },
+                {11, TOUT_DROIT},
+                {7,  DEVIE     },
+                {5,  TOUT_DROIT},
+                {4,  TOUT_DROIT},
+                {2,  DEVIE     },
+                {1,  TOUT_DROIT}
+            });
 
-             LocomotiveBehavior::Parameters paramsA = {
-                 locoA, {1, 2}, {sharedSection, {15, TOUT_DROIT}, {8, TOUT_DROIT}, 29, 22, 10}
-             };
+            LocomotiveBehavior::Parameters paramsA = {
+                locoA,
+                {1, 2},
+                {{synchro1, {15, TOUT_DROIT}, {8, TOUT_DROIT}, 29, 22, 10}},
+            };
 
-             LocomotiveBehavior::Parameters paramsB = {
-                 locoB, {5, 6}, {sharedSection, {15, DEVIE}, {8, DEVIE}, 33, 25, 14}
-             };
+            LocomotiveBehavior::Parameters paramsB = {
+                locoB,
+                {5, 6},
+                {{synchro1, {15, DEVIE}, {8, DEVIE}, 33, 25, 14}},
+            };
 
-             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
-         }
-         case RouteName::ROUTE_4: {
-             // Route junctions
-             JunctionList junctions({
-               {21, DEVIE},
-                 {20, DEVIE},
-                 {23, TOUT_DROIT},
-                 {22, TOUT_DROIT},
-                 {19, TOUT_DROIT},
-                 {16, TOUT_DROIT},
-                 {17, TOUT_DROIT},
-                 {14, DEVIE},
-                 {13, TOUT_DROIT},
-                 {10, DEVIE},
-                 {11, TOUT_DROIT},
-                 {5, TOUT_DROIT},
-                 {3, DEVIE}
-             });
+            return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+        }
+        case RouteName::ROUTE_4: {
+            // Route junctions
+            JunctionList junctions({
+                {21, DEVIE     },
+                {20, DEVIE     },
+                {23, TOUT_DROIT},
+                {22, TOUT_DROIT},
+                {19, TOUT_DROIT},
+                {16, TOUT_DROIT},
+                {17, TOUT_DROIT},
+                {14, DEVIE     },
+                {13, TOUT_DROIT},
+                {10, DEVIE     },
+                {11, TOUT_DROIT},
+                {5,  TOUT_DROIT},
+                {3,  DEVIE     }
+            });
 
-             LocomotiveBehavior::Parameters paramsA = {
-                 locoA, {1, 2}, {sharedSection, {9, TOUT_DROIT}, {2, TOUT_DROIT}, 19, 13, 1}
-             };
+            LocomotiveBehavior::Parameters paramsA = {
+                locoA,
+                {1, 2},
+                {{synchro1, {9, TOUT_DROIT}, {2, TOUT_DROIT}, 19, 13, 1}},
+            };
 
-             LocomotiveBehavior::Parameters paramsB = {
-                 locoB, {5, 6}, {sharedSection, {9, DEVIE}, {2, DEVIE}, 23, 16, 5}
-             };
+            LocomotiveBehavior::Parameters paramsB = {
+                locoB, {5, 6},
+                {{synchro1, {9, DEVIE}, {2, DEVIE}, 23, 16, 5}},
+            };
 
-             return Route({MAQUETTE_A, junctions, paramsA, paramsB});
-         }
+            return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+        }
+        case RouteName::ROUTE_5: {
+            JunctionList junctions({
+                {22, DEVIE     },
+                {20, TOUT_DROIT},
+                {23, DEVIE     },
+                {16, DEVIE     },
+                {15, TOUT_DROIT},
+                {13, TOUT_DROIT},
+                {10, DEVIE     },
+                {1,  DEVIE     },
+                {14, DEVIE     },
+                {9,  DEVIE     },
+                {8,  DEVIE     },
+                {11, TOUT_DROIT},
+                {5,  TOUT_DROIT},
+                {3,  DEVIE     },
+            });
+
+            std::shared_ptr<SynchroInterface> synchro2 =
+                std::make_shared<Synchro>();
+
+            // Paramètres de la locomotive 1
+            LocomotiveBehavior::Parameters paramsA = {
+                locoA,
+                {1, 2},
+                {
+                  {synchro1, {21, TOUT_DROIT}, {16, TOUT_DROIT}, 1, 31, 21},
+                  {synchro2, {9, TOUT_DROIT}, {2, TOUT_DROIT}, 19, 13, 1}
+                }
+            };
+
+            // Paramètres de la locomotive 2
+            LocomotiveBehavior::Parameters paramsB = {
+                locoB,
+                {5, 6},
+                {
+                  {synchro1, {21, DEVIE}, {16, DEVIE}, 5, 34, 24},
+                  {synchro2, {9, DEVIE}, {2, DEVIE}, 23, 16, 5}
+                }
+            };
+
+            return Route({MAQUETTE_A, junctions, paramsA, paramsB});
+        }
     }
 }
 

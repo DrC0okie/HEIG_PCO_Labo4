@@ -15,7 +15,7 @@
 \newcommand{\header} {
     \setlength{\headheight}{30pt}\pagestyle{fancy}
     \fancyhead[L]{\includegraphics[height=20pt]{~/Templates/heig-logo}}\fancyhead[C]{PCO 2023\\ Lab 4}
-    \fancyhead[R]{Timothée Van Hove et Aubry Mangold\\\today}\fancyfoot[C]{}
+    \fancyhead[R]{Aubry Mangold, Timothée Van Hove\\\today}\fancyfoot[C]{}
     \fancyfoot[R]{Page \thepage~sur \pageref{LastPage}}\renewcommand{\footrulewidth}{0.3pt}
 }
 
@@ -39,7 +39,6 @@
 \begin{document}
     \header
 
-
     \section{Introduction}
 
     The goal of this lab is to implement the management of a shared rail section in a train simulation.
@@ -50,33 +49,70 @@
     at the station and an emergency stop system.
 
     \section{Analysis}
-% Talk about the problems arising from having two trains running on two threads that need to be synchoronized
-%    Shared resources
-%    Critical sections
-%    Synchronization
-%    Deadlocks
 
-    In a concurrent system where two trains are operated by separate threads, it is a synchronization challenge to ensure that both trains coexist in areas where their paths intersect or overlap (critical sections). Critical sections in this context include shared track sections and stations. The tracks, particularly the shared sections, act as shared resources. Without proper synchronization, both trains could attempt to occupy the same section simultaneously, leading to a collision in the simulation. Deadlocks are a significant risk. With two trains, this could occur if both attempt to enter the same shared section from opposite ends and wait indefinitely for the other to leave. Similar to shared sections, stations are points where special synchronization is needed. Both trains might need to use the station simultaneously.
+    Our analysis began with identifying the complexities in a multi-threaded train simulation. The primary challenge lies in the synchronization of two trains running on separate threads, especially in shared track sections and stations – the critical sections. These areas are akin to shared resources, where improper management can lead to collisions or deadlocks
 
-    To solve the critical sections challenges we are going to use both active waiting to ensure the access to only 1 train and mutual exclusion to ensure that the shared resources are accessed correctly. 
+    We identified the risk of deadlocks as particularly pertinent, where two trains might attempt to enter the same section, leading to an indefinite waiting scenario. To address this, we focused on the principles of active waiting and mutual exclusion. Active waiting, ensures that a train remains responsive while waiting for a shared section to become available. Mutual exclusion, achieved with a semaphore, guarantees that shared resources are accessed in an exclusive, manner.
+
+    To solve the critical sections challenges we are going to use both active waiting to ensure the access to only 1 train and mutual exclusion to ensure that the shared resources are accessed correctly. Stations are critical points where and coordination are essential. Therefore, we devised a system not just to manage station occupancy but also to synchronize the order of train departure.
 
     \section{Conception}
-% Talk about how train blocks work in real life TIM: Really necessary?
-% Talk about which concepts we've used to solve the problem
-% Sections: shared section, station, emergency stop
 
-    To address station synchronization, we implemented a barrier mechanism. This ensures that trains can only leave the station when it is fully occupied. Additionally, we integrated a priority system within this barrier, giving precedence to the last train arriving at the station to depart first when the barrier is lifted.
+    To address station synchronization, our solution incorporates a barrier mechanism for station synchronization. This barrier not only ensures orderly train departures but also integrates a priority system, giving precedence to the last arriving train to enhance operational efficiency.
 
     For managing the shared section, we established a synchronization logic. This system ensures that while one train occupies this critical section, the other train waits. As soon as the first train exits the section, the waiting train receives clearance to enter. This approach effectively prevents conflicts and ensures safe passage through the shared track section.
 
-    \newpage
+    \pagebreak
 
     \section{Implementation}
-% Briefly talk about the implementation, giving code examples where necessary
 
-    In the implementation of our train simulation system, we began by creating distinct routes for each locomotive. These routes are dynamically generated using the routeFactory function, which not only sets up specific track junction configurations but also establishes parameters for each train's journey, including how they navigate shared track sections.
+    In the implementation of our train simulation system, we began by selecting the route for each locomotive. These routes are dynamically generated using the routeFactory function, which not only sets up specific track junction configurations but also establishes parameters for each train's journey, including how they navigate shared track sections.
 
-    In the main function, we initialize the model railway system, including setting up the model turnouts based on the selected route. Locomotives A and B are initialized with unique identifiers and predetermined speeds, and their starting positions are determined by the route configuration. Then, two threads launch an instance of the runnable locomotivebehavior class. In this class, the run() method is responsible for dictating the locomotive's actions, encompassing station stops, navigation through shared sections, and responses to track junctions.
+    In the main function, we initialize the model railway system. Locomotives A and B are initialized with unique identifiers and predetermined speeds, and their starting positions are determined by the route configuration. The simulation is initiated with the launching of the locomotive threads. It runs continuously, monitoring for any external conditions or the activation of the emergency stop, which would bring the operation to a halt. The two threads launch an instance of the runnable locomotivebehavior class. In this class, the run() method is responsible for dictating the locomotive's actions, encompassing station stops, navigation through shared sections, and responses to track junctions.
+
+    \begin{lstlisting}
+        void LocomotiveBehavior::run(){
+            // Initial entry into the station.
+            attendre_contact(station);
+
+            while (true) {
+                sections.front().synchro->stopAtStation(loco);
+
+                // Go through each section
+                for (const auto& section : sections) {
+                    // Wait for the warning contact to be triggered, if any.
+                    if (section.contactWarn != station) {
+                        attendre_contact(section.contactWarn);
+                    }
+
+                    // The first departed locomotive gets priority in the first shared section.
+                    if (loco.priority == 0) {
+                        loco.priority++;
+                    } else {
+                        section.synchro->access(loco);
+                    }
+
+                    // Toggle the junctions once the section entry contact is hit.
+                    attendre_contact(section.contactEnter);
+                    diriger_aiguillage(section.junctionEntry.junctionId,
+                                    section.junctionEntry.direction, 0);
+                    diriger_aiguillage(section.junctionExit.junctionId,
+                                    section.junctionExit.direction, 0);
+
+                    // Release the shared section after passing the exit contact.
+                    attendre_contact(section.contactExit);
+                    section.synchro->leave(loco);
+                }
+
+                // Wait for the station contact if it is different from the section exit contact.
+                if (station != sections.back().contactExit) {
+                    attendre_contact(station);
+                }
+            }
+        }
+    \end{lstlisting}
+
+    \pagebreak
 
     Synchronization of shared track sections is a critical aspect of our implementation. We employed the Synchro class to manage access to these sections. The methods access(), leave(), and stopAtStation() ensure that only one train occupies a shared section at any given time, effectively preventing the risk of collisions.
 
@@ -118,23 +154,23 @@
     }
     \end{lstlisting}
 
-    \newpage
+    \pagebreak
 
-    Station management is another key feature. To control access to the station and ensure orderly operation, we implemented a barrier-like mechanism. This approach not only manages station occupancy but also assigns departure priority to the last train that arrives at the station.
+    Station management is another key feature to control access to the station and ensure orderly operation. We implemented a barrier-like mechanism because this approach not only manages station occupancy but also assigns departure priority to the last train that arrives at the station.
 
     \begin{lstlisting}
         void stopAtStation(Locomotive& loco) override {
-    
+
             // If the station is empty, stop the loco and set the station to occupied.
             mutexStation.acquire();
             if (!isStationOccupied) {
                 isStationOccupied = true;
                 mutexStation.release();
                 loco.arreter();
-    
+
                 // Wait to be released by the last arrived loco.
                 stationSemaphore.acquire();
-    
+
                 // Set the priority
                 loco.priority = 1;
                 loco.demarrer();
@@ -144,14 +180,14 @@
                 isStationOccupied = false;
                 loco.arreter();
                 PcoThread::usleep(5e6);
-    
+
                 // Give access to the shared section before releasing other locos so
                 // that we're sure it can't be acquired by another loco.
                 access(loco);
-    
+
                 // Release the semaphore to signal the first loco that it may continue.
                 stationSemaphore.release();
-    
+
                 // Set the loco to the highest priority and restart it.
                 // Note: this is useful in the LocoBehavior::run() while loop in order to avoid the
                 // prioritized loco trying to acquire the shared section again.
@@ -162,11 +198,11 @@
         }
     \end{lstlisting}
 
-    An emergency stop function was integrated. This function can be invoked to immediately halt both locomotives, setting their speeds to zero and ensuring an instantaneous stop.
+    Finally, an emergency stop function was integrated. This function can be invoked to immediately halt both locomotives, setting their speeds to zero and ensuring an instantaneous stop. Upon conclusion, the simulation is gracefully terminated, ensuring the proper shutdown of all threads and the safe state of the train model system.
 
-    The simulation is initiated with the launching of the locomotive threads. It runs continuously, monitoring for any external conditions or the activation of the emergency stop, which would bring the operation to a halt. Upon conclusion, the simulation is gracefully terminated, ensuring the proper shutdown of all threads and the safe state of the train model system.
 
-    \newpage
+
+    \pagebreak
 
     \section{Tests}
     \subsection*{Shared section}
@@ -189,7 +225,7 @@
     \subsection*{Station synchronization}
         We validated that the last train to enter the station was the first one to leave the station. Furthermore, we've validated that there are no hiccups in the second locomotive that has to wait in the station.
     \subsection*{Emergency stop}
-    
+
     We tested the emergency stop in different scenarios with the inertia taken into account:
     \begin{itemize}
         \item Just before the station. Inertia makes the train enter the station
@@ -198,14 +234,14 @@
         \item when both trains are outside the station
         \item when both trains are outside the critical section
     \end{itemize}
-    
+
     \section{Conclusion}
 
     In conclusion, our train simulation system successfully demonstrates the application of concurrent programming principles to a complex, real-world scenario. By employing semaphores and synchronization techniques, we effectively managed shared resources and ensured safe, conflict-free operation of two trains on a single track system. The diverse testing scenarios further validated the robustness of our implementation.
-    
+
     \appendix
 
-    \newpage
+    \pagebreak
 
     \section{Train routes}
     % images of the train routes used in the tests
